@@ -14,7 +14,7 @@ type ComandsCallback struct {
 }
 
 type Tg struct {
-	Bot             *tgbotapi.BotAPI
+	Bot             BotAPI
 	StateM          *StateMachine
 	commands        map[string]func(tg *Tg, update tgbotapi.Update)
 	comandsCallback map[string]ComandsCallback
@@ -33,19 +33,28 @@ func MakeTgBot(config ConfigBot) *Tg {
 	return &Tg{Config: config}
 }
 
-func (tg *Tg) Init() {
+// NewTgBot создаёт Tg с внедрёнными зависимостями (для тестов)
+func NewTgBot(config ConfigBot, bot BotAPI, stateMachine *StateMachine) *Tg {
+	return &Tg{
+		Config: config,
+		Bot:    bot,
+		StateM: stateMachine,
+	}
+}
+
+func (tg *Tg) Init() error {
 	botToken := tg.Config.Token
 
-	bot, err := tgbotapi.NewBotAPI(botToken)
+	realBot, err := tgbotapi.NewBotAPI(botToken)
 	if err != nil {
-		log.Fatal("TGBOT: failed to connect telegram bot",
-			zap.String("error", err.Error()))
+		return fmt.Errorf("failed to connect telegram bot: %w", err)
 	}
-	bot.Debug = tg.Config.Debug
-	tg.Bot = bot
+	realBot.Debug = tg.Config.Debug
+	tg.Bot = realBot
 	tg.StateM = NewStateMachine()
 	log.Info("telegram bot initialized successfully",
-		zap.String("bot_username", tg.Bot.Self.UserName))
+		zap.String("bot_username", tg.Bot.(*tgbotapi.BotAPI).Self.UserName))
+	return nil
 }
 
 func (tg *Tg) StartListenMessage() {
@@ -201,7 +210,10 @@ func (tg *Tg) handleStateMachine(update tgbotapi.Update) bool {
 		return false // no more steps
 	}
 
-	step := tg.StateM.scenarios[userState.CurrentCommand].Steps[userState.Step]
+	step := tg.StateM.GetScenarioStep(userState.CurrentCommand, userState.Step)
+	if step == nil {
+		return false
+	}
 
 	switch step.Type {
 	case StepTypeMessage:
