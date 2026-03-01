@@ -16,14 +16,18 @@ func main() {
 
 	// Конфигурация бота
 	config := telekit.ConfigBot{
-		Token:    "YOUR_BOT_TOKEN_HERE", // Замените на ваш токен
+		Token:    "8694630368:AAGZvvMnjmpyEEjOJSMC9JNUkfPKks6diBM", // Замените на ваш токен
 		Debug:    true,
 		Timeout:  60,
 		Separate: "@",
 	}
 
 	bot := telekit.MakeTgBot(config)
-	bot.Init()
+	err := bot.Init()
+	if err != nil {
+		fmt.Printf("❌ Ошибка инициализации бота: %v\n", err)
+		return
+	}
 
 	// Регистрация команд
 	bot.RegisterCommand("start", handleStart)
@@ -85,7 +89,7 @@ func main() {
 	bot.RegisterCommand("buttons", func(tg *telekit.Tg, update tgbotapi.Update) {
 		chatID := update.Message.Chat.ID
 		msg := tgbotapi.NewMessage(chatID, "Выберите книгу:")
-		
+
 		// Пример динамических кнопок с ID
 		// Все кнопки btn_book@1, btn_book@2, btn_book@3 будут обрабатываться одной функцией handleBookButton
 		// В handleBookButton ты можешь получить ID после "@" и действовать соответственно
@@ -133,11 +137,11 @@ func handleCancel(tg *telekit.Tg, update tgbotapi.Update) {
 func handleBookButton(tg *telekit.Tg, update tgbotapi.Update) {
 	chatID := update.CallbackQuery.Message.Chat.ID
 	data := update.CallbackQuery.Data
-	
+
 	// Получаем ID книги после сепаратора "@"
 	// data = "btn_book@1" → bookID = "1"
 	// data = "btn_book@42" → bookID = "42"
 	bookID := strings.TrimPrefix(data, "btn_book@")
-	
+
 	tg.SendMessageText(chatID, fmt.Sprintf("📚 Вы выбрали книгу #%s", bookID))
 }

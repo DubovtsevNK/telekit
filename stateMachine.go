@@ -55,3 +55,12 @@ func (bsm *StateMachine) CompleteScenario(chatID int64, state *UserState) {
 			zap.Int64("ChatID", chatID))
 	}
 }
+
+// GetScenarioStep возвращает шаг сценария по команде и индексу
+func (bsm *StateMachine) GetScenarioStep(command string, stepIndex int) *Step {
+	scenario, ok := bsm.scenarios[command]
+	if !ok || stepIndex < 0 || stepIndex >= len(scenario.Steps) {
+		return nil
+	}
+	return &scenario.Steps[stepIndex]
+}
