@@ -41,7 +41,7 @@ func (bsm *StateMachine) FindUserState(chatID int64) *UserState {
 }
 
 func (bsm *StateMachine) GetCountScenarioStepInComand(comand string) int {
-	return len(bsm.scenarios[comand].Steps)
+	return len(bsm.scenarios[comand].Steps) + 1
 }
 
 func (bsm *StateMachine) CompleteScenario(chatID int64, state *UserState) {
