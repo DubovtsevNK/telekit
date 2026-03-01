@@ -1,6 +1,8 @@
 package telekit
 
 import (
+	"fmt"
+
 	"go.uber.org/zap"
 )
 
@@ -17,7 +19,11 @@ func (bsm *StateMachine) RegisterScenario(command string, steps []Step) {
 		zap.String("command", command))
 }
 
-func (bsm *StateMachine) StartScenario(chatID int64, command string) {
+func (bsm *StateMachine) StartScenario(chatID int64, command string) error {
+
+	if _, ok := bsm.scenarios[command]; !ok {
+		return fmt.Errorf("unknown Scenario")
+	}
 	bsm.userStates[chatID] = &UserState{
 		CurrentCommand: command,
 		Step:           0,
@@ -26,6 +32,8 @@ func (bsm *StateMachine) StartScenario(chatID int64, command string) {
 	log.Info("StateMachine start scenario",
 		zap.Int64("ChatID", chatID),
 		zap.String("command", command))
+
+	return nil
 }
 
 func (bsm *StateMachine) FindUserState(chatID int64) *UserState {
