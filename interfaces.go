@@ -6,4 +6,5 @@ import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 type BotAPI interface {
 	Send(chattable tgbotapi.Chattable) (tgbotapi.Message, error)
 	GetUpdatesChan(config tgbotapi.UpdateConfig) tgbotapi.UpdatesChannel
+	Request(c tgbotapi.Chattable) (*tgbotapi.APIResponse, error)
 }

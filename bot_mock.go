@@ -7,6 +7,7 @@ type MockBotAPI struct {
 	SentMessages      []tgbotapi.Chattable // запоминает все отправленные сообщения
 	SentCallbacks     []tgbotapi.CallbackConfig
 	SendFunc          func(tgbotapi.Chattable) (tgbotapi.Message, error)
+	RequestFunc       func(tgbotapi.Chattable) (*tgbotapi.APIResponse, error)
 }
 
 // Send имитирует отправку сообщения
@@ -29,6 +30,16 @@ func (m *MockBotAPI) GetUpdatesChan(config tgbotapi.UpdateConfig) tgbotapi.Updat
 	ch := make(chan tgbotapi.Update)
 	close(ch)
 	return ch
+}
+
+// Request имитирует запрос к API
+func (m *MockBotAPI) Request(c tgbotapi.Chattable) (*tgbotapi.APIResponse, error) {
+	m.SentMessages = append(m.SentMessages, c)
+
+	if m.RequestFunc != nil {
+		return m.RequestFunc(c)
+	}
+	return &tgbotapi.APIResponse{Ok: true}, nil
 }
 
 // Reset очищает историю сообщений
